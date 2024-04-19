@@ -1,6 +1,8 @@
 import { Row } from "./row";
 import { RowItem } from "./rowitem";
 import { ShotInfo } from "../../imodels/session";
+import { codeToValue } from "./targetFace";
+import { useCallback } from "react";
 
 interface SheetProps {
   roundCount: number
@@ -12,23 +14,54 @@ interface SheetProps {
   select: (i: number) => void
   selectedColumn: number | undefined
   selectColumn: (i: number) => void
+  selectedRound: number | undefined
+  selectRound: (i: number) => void
 }
 
 export function Sheet(props: SheetProps) {
-  const {sets, setsPerRound, roundCount, arrowsPerSet, select, selected, selectedColumn, selectColumn} = props
+  const {
+    sets,
+    setsPerRound,
+    roundCount,
+    arrowsPerSet,
+    select,
+    selected,
+    selectedColumn,
+    selectColumn,
+    selectedRound,
+    selectRound
+  } = props
   const header = Array.from({length: arrowsPerSet})
-  const isDarker = (i: number) => {
-    return props.selectedColumn !== undefined && i !== props.selectedColumn
-  }
+  const isDarker = useCallback((i: number) => {
+    return (selectedColumn !== undefined && i !== selectedColumn)
+  }, [selectedColumn])
 
+  const totalRows = setsPerRound * roundCount
   const rows = []
-  for (let i = 0; i < setsPerRound * roundCount; i++) {
-    if (i > 0 && i % setsPerRound === 0) {
-      rows.push(<hr class='h1' />)
+  for (let i = 0; i < totalRows; i++) {
+    const roundNum = Math.floor(i / setsPerRound)
+    if (i % setsPerRound === 0) {
+      const shots = sets.slice(roundNum * setsPerRound, roundNum * setsPerRound + setsPerRound).flat()
+      const sum = shots.reduce((agg, v) => agg + codeToValue(v.code), 0)
+      rows.push(
+        <>
+          <div style='display: flex; justify-content: center' onClick={() => selectRound(roundNum)}>
+            <div style='display: flex; gap: 2em; border-bottom: 1px solid pink;'>
+              <span>Round: {roundNum + 1}</span>
+              <span>Avg: {(sum / shots.length).toFixed(2)}</span>
+              <span>Total: {sum}</span>
+            </div>
+          </div>
+          <div></div>
+        </>
+      )
     }
     rows.push(<Row maxSize={arrowsPerSet}
                    selected={i === selected}
                    selectedColumn={selectedColumn}
+                   selectedRound={selectedRound}
+                   setsPerRound={setsPerRound}
+                   isDarker={selectedRound !== undefined && Math.floor(i / setsPerRound) !== selectedRound}
                    num={i + 1}
                    select={select}
                    data={sets[i]} />)

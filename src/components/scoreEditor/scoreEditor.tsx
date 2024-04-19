@@ -10,10 +10,17 @@ interface ScoreEditorState {
   shotsCount: number
   selectedRow?: number
   selectedCol?: number
+  selectedRound?: number
   changed: boolean
 }
 
-type ScoreEditorAction = ActionUpdate | ActionSelectRow | ActionRemove | ActionSelectCol | ActionDescription
+type ScoreEditorAction =
+  ActionUpdate
+  | ActionSelectRow
+  | ActionRemove
+  | ActionSelectCol
+  | ActionDescription
+  | ActionSelectRound
 
 interface ActionSelectCol {
   type: 'selectCol'
@@ -23,6 +30,11 @@ interface ActionSelectCol {
 interface ActionSelectRow {
   type: 'selectRow'
   id?: number
+}
+
+interface ActionSelectRound {
+  type: 'selectRound'
+  id: number
 }
 
 interface ActionUpdate {
@@ -46,10 +58,15 @@ const reducer = (state: ScoreEditorState, action: ScoreEditorAction) => {
     case 'selectRow':
       state.selectedRow = state.selectedRow === action.id ? undefined : action.id
       state.selectedCol = undefined
+      state.selectedRound = undefined
       return {...state}
     case 'selectCol':
       state.selectedRow = undefined
       state.selectedCol = state.selectedCol === action.id ? undefined : action.id
+      return {...state}
+    case 'selectRound':
+      state.selectedRow = undefined
+      state.selectedRound = state.selectedRound === action.id ? undefined : action.id
       return {...state}
     case 'update':
       if (state.selectedRow === undefined || state.session.sets[state.selectedRow].length >= action.arrowsPerSet) {
@@ -96,7 +113,7 @@ export function ScoreEditor(props: ScoreEditorProps) {
     shotsCount: props.session.sets.reduce((agg, s) => agg + s.length, 0)
   })
 
-  const toDraw = getToDraw(state.session.sets, state.selectedRow, state.selectedCol)
+  const toDraw = getToDraw(state)
 
   return (
     <div className='scoreeditor'>
@@ -107,8 +124,10 @@ export function ScoreEditor(props: ScoreEditorProps) {
         arrowsPerSet={state.session.shotsPerSet}
         selected={state.selectedRow}
         selectedColumn={state.selectedCol}
+        selectedRound={state.selectedRound}
         select={(i) => dispatch({type: 'selectRow', id: i,})}
         selectColumn={(i) => dispatch({type: 'selectCol', id: i,})}
+        selectRound={(i) => dispatch({type: 'selectRound', id: i,})}
       />
       <InfoLine total={state.session.total}
                 shotCount={state.shotsCount}
@@ -120,15 +139,23 @@ export function ScoreEditor(props: ScoreEditorProps) {
   )
 }
 
-function getToDraw(sets: ShotInfo[][], selectedRow?: number, selectedCol?: number): ShotInfo[] {
-  if (selectedRow !== undefined) {
-    return sets[selectedRow]
+function getToDraw(state: ScoreEditorState): ShotInfo[] {
+  const sets = state.session.sets
+  if (state.selectedRow !== undefined) {
+    return sets[state.selectedRow]
   }
-  if (selectedCol !== undefined) {
-    return sets.reduce<ShotInfo[]>((agg, set) => {
-      agg.push(set[selectedCol])
+
+  const round = state.selectedRound
+  const byRound = round !== undefined
+    ? sets.slice(state.session.setsPerRound * round, state.session.setsPerRound * round + state.session.setsPerRound)
+    : sets
+
+  const column = state.selectedCol
+  if (column !== undefined) {
+    return byRound.reduce<ShotInfo[]>((agg, set) => {
+      agg.push(set[column])
       return agg
     }, [])
   }
-  return sets.flat()
+  return byRound.flat()
 }

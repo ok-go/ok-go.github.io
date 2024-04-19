@@ -42,11 +42,11 @@
 }
 
 .scorerow:nth-child(odd) {
-    background-color: #242424;
+    background-color: #484848;
 }
 
 .scorerow:nth-child(even) {
-    background-color: #484848;
+    background-color: #242424;
 }
 
 .scoreitem {
