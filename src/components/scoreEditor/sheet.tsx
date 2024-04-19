@@ -43,12 +43,13 @@ export function Sheet(props: SheetProps) {
     if (i % setsPerRound === 0) {
       const shots = sets.slice(roundNum * setsPerRound, roundNum * setsPerRound + setsPerRound).flat()
       const sum = shots.reduce((agg, v) => agg + codeToValue(v.code), 0)
+      const avg = sum / shots.length
       rows.push(
         <>
           <div style='display: flex; justify-content: center' onClick={() => selectRound(roundNum)}>
             <div style='display: flex; gap: 2em; border-bottom: 1px solid pink;'>
               <span>Round: {roundNum + 1}</span>
-              <span>Avg: {(sum / shots.length).toFixed(2)}</span>
+              <span>Avg: {(isNaN(avg) ? 0 : avg).toFixed(2)}</span>
               <span>Total: {sum}</span>
             </div>
           </div>
