@@ -11,7 +11,7 @@ export function Credentials(props: { withLogo: boolean }) {
 function Footer() {
   return (
     <div class='cred-footer'>
-      L'Arch by Gordienko, 2024
+      L'Arc by Gordienko, 2024
     </div>
   )
 }
@@ -19,7 +19,7 @@ function Footer() {
 function Logo() {
   return (
     <div class='cred-logo'>
-      <div id='name'>L'Arch</div>
+      <div id='name'>L'Arc</div>
       <div id='creator'>BY GORDIENKO</div>
     </div>
   )
